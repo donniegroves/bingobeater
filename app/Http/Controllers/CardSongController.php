@@ -8,23 +8,45 @@ use Illuminate\Support\Facades\DB;
 
 class CardSongController extends Controller
 {
-    public function viewCards($game_id)
-    {
-        $cardsong_obj = new CardSong();
+    public function viewCards($game_id) {
+        $cardsong_obj = new CardSong((int) $game_id);
 
-        // getting card ids
-        for($i=0;$i<2;$i++) {
-            $card_ids[] = $cardsong_obj->getNewCardForGame((int) $game_id);
+        // TODO write getCurrentCardCount and replace below with: $existing_num_of_cards = $cardsong_obj->getCurrentCardCount();
+        $cards = DB::table('card_songs')
+            ->select('card_id')
+            ->groupBy('card_id')
+            ->where('game_id', $game_id)
+            ->orderBy('card_id', 'asc')
+            ->get();
+
+        $existing_num_of_cards = count($cards);
+
+        if ($existing_num_of_cards < 2) {
+            // getting card ids
+            for($i=0;$i<2;$i++) {
+                $cardsong_obj->getNewCardForGame();
+            }
+
+            $cardsong_obj->processCards();
         }
 
-        // getting songs for each card
-        foreach ($card_ids as $card_id) {
-            $songs[$card_id] = $cardsong_obj->getSongsOnCard((int) $game_id, (int) $card_id);
-        }
+        $songs = DB::table('card_songs')
+            ->select('artist', 'song_title', 'played')
+            ->groupBy('song_id', 'artist', 'song_title', 'played')
+            ->where('game_id', $game_id)
+            ->orderBy('song_title', 'asc')
+            ->get();
 
-        echo '<pre>';var_dump($songs);exit();
+        $cards = DB::table('card_songs')
+            ->select('card_id')
+            ->groupBy('card_id')
+            ->where('game_id', $game_id)
+            ->orderBy('card_id', 'asc')
+            ->get();
 
-        $card_songs = DB::table('card_songs')->where('game_id', $game_id)->get();
-        return view('view-cards');
+        return view('view-cards', [
+            'songs' => $songs,
+            'cards' => $cards
+        ]);
     }
 }

@@ -1,3 +1,17 @@
+<?php
+echo '<pre>Cards retrieved:';
+foreach ($cards as $card) {
+    echo $card->card_id . ', ';
+}
+echo "\r\n Songs retrieved: \r\n";
+foreach ($songs as $song) {
+    echo $song->song_title . ' - ' . $song->artist . ' - ';
+    echo $song->played ? 'PLAYED' : 'NOT PLAYED';
+    echo "\r\n";
+}
+exit();
+?>
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>

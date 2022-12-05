@@ -4,13 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use PHPHtmlParser\Dom;
 
 class CardSong extends Model
 {
     use HasFactory;
 
-    public function getNewCardForGame(int $game_id) {
+    private $game_id;
+    private $card_ids;
+
+    public function __construct(int $game_id)
+    {
+        $this->game_id = $game_id;
+        $this->card_ids = [];
+    }
+
+    public function getNewCardForGame() {
         $curl = curl_init();
 
         curl_setopt_array($curl, [
@@ -21,7 +31,7 @@ class CardSong extends Model
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "GameID={$game_id}&CardID=Auto&GenerateCardID=GenerateNewID",
+            CURLOPT_POSTFIELDS => "GameID={$this->game_id}&CardID=Auto&GenerateCardID=GenerateNewID",
             CURLOPT_HTTPHEADER => [
                 "Content-Type: application/x-www-form-urlencoded"
             ],
@@ -35,11 +45,61 @@ class CardSong extends Model
         $dom->loadStr($response);
         $card_id = $dom->find(".container input[name='CardID']")->getAttribute('value');
 
-        return (int) $card_id;
+        $this->card_ids[] = (int) $card_id;
+
+        return;
     }
 
-    public function getSongsOnCard(int $game_id, int $card_id) {
-        $aqt = $this->getAQT($game_id, $card_id);
+    public function processCards() {
+        // getting songs for each card
+        foreach ($this->card_ids as $card_id) {
+            $songs_by_round = $this->getSongsOnCard($card_id);
+            echo '<pre>';
+            foreach ($songs_by_round as $round_key => $round) {
+                $_round_name = $round->Name;
+                $_round = $round_key + 1;
+                foreach ($round->Columns as $key => $col) {
+                    $_col = $key + 1;
+                    foreach ($col as $r_key => $row) {
+                        $_row = $r_key + 1;
+                        $_id = $row->ID;
+                        $_artist = $row->FullArtist;
+                        $_song_title = $row->FullTitle;
+
+                        $rows_for_insert[] = [
+                            "song_id"    => $_id,
+                            "game_id"    => $this->game_id,
+                            "card_id"    => $card_id,
+                            "round"      => $_round,
+                            "round_name" => str_replace('<BR>','-',$_round_name),
+                            "col"        => $_col,
+                            "row"        => $_row,
+                            "artist"     => $_artist,
+                            "song_title" => $_song_title,
+                        ];
+                    }
+                }
+            }
+        }
+
+        // TODO: put this above to not duplicate.
+        foreach ($rows_for_insert as $row) {
+            DB::table('card_songs')->insert([
+                'song_id'       => $row['song_id'],
+                'game_id'       => $row['game_id'],
+                'card_id'       => $row['card_id'],
+                'round'         => $row['round'],
+                'round_name'    => $row['round_name'],
+                'col'           => $row['col'],
+                'row'           => $row['row'],
+                'artist'        => $row['artist'],
+                'song_title'    => $row['song_title'],
+            ]);
+        }
+    }
+
+    public function getSongsOnCard(int $card_id) {
+        $aqt = $this->getAQT($this->game_id, $card_id);
         $curl = curl_init();
 
         curl_setopt_array($curl, [
