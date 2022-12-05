@@ -13,14 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('cards', function (Blueprint $table) {
+        Schema::create('card_songs', function (Blueprint $table) {
             $table->id();
             $table->integer('game_id');
+            $table->integer('card_id');
+            $table->tinyInteger('round');
             $table->tinyInteger('col');
             $table->tinyInteger('row');
             $table->string('artist');
             $table->string('song_title');
-            $table->integer('song_id');
             $table->boolean('played');
             $table->timestamps();
         });
@@ -33,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('cards');
+        Schema::dropIfExists('card_songs');
     }
 };
