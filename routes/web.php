@@ -16,3 +16,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('view-cards', [CardController::class, 'index']);
+Route::post('mark-song-played', [CardController::class, 'toggleSongPlayed']);

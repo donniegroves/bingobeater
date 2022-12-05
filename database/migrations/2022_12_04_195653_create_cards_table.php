@@ -20,6 +20,8 @@ return new class extends Migration
             $table->tinyInteger('row');
             $table->string('artist');
             $table->string('song_title');
+            $table->integer('song_id');
+            $table->boolean('played');
             $table->timestamps();
         });
     }
