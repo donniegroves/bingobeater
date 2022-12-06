@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CardSongController;
 
@@ -17,5 +18,5 @@ use App\Http\Controllers\CardSongController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/view-cards/{game_id}', [CardSongController::class, 'viewCards']);
+Route::get('view-cards', [CardSongController::class, 'viewCards']);
 Route::post('mark-song-played', [CardSongController::class, 'toggleSongPlayed']);

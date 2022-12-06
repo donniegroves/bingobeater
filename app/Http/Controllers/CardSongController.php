@@ -8,8 +8,13 @@ use Illuminate\Support\Facades\DB;
 
 class CardSongController extends Controller
 {
-    public function viewCards($game_id) {
-        $cardsong_obj = new CardSong((int) $game_id);
+    public function viewCards(Request $request) {
+        if (!is_numeric($request->input('game_id'))){
+            return response('Game ID not provided.', 400);
+        }
+
+        $game_id = (int) $request->input('game_id');
+        $cardsong_obj = new CardSong($game_id);
 
         // determining if at least 2 existing cards exist already.
         $existing_num_of_cards = $cardsong_obj->getCurrentCardCount();
