@@ -1,8 +1,6 @@
 <?php
 echo '<pre>Cards retrieved:';
-foreach ($cards as $card) {
-    echo $card->card_id . ', ';
-}
+var_dump($card_stats);
 echo "\r\n Songs retrieved: \r\n";
 foreach ($songs as $song) {
     echo $song->song_title . ' - ' . $song->artist . ' - ';
