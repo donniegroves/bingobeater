@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CardSong;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CardSongController extends Controller
 {
@@ -25,6 +26,22 @@ class CardSongController extends Controller
         }
         else {
             return view('view-cards', ['cardsong_obj' => $cardsong_obj, 'round' => $request->input('round')]);
+        }
+    }
+
+    public function toggleSongPlayed(Request $request) {
+        $song_id = (int) $request->input('song_id');
+        $cur_played_status = CardSong::getPlayedStatus($song_id);
+        $new_played_status = !$cur_played_status;
+
+        try {
+            DB::update(
+                'update card_songs set played = ? where song_id = ?',
+                [$new_played_status, $song_id]
+            );
+            return true;
+        } catch (\Throwable $th) {
+            return false;
         }
     }
 

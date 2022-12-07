@@ -103,6 +103,16 @@ class CardSong extends Model
         return;
     }
 
+    public static function getPlayedStatus(int $song_id) {
+        $played_status = DB::table('card_songs')
+            ->select("played")
+            ->where('song_id', $song_id)
+            ->pluck('played')
+            ->toArray();
+
+        return (bool) $played_status[0];
+    }
+
     public function displayCards($round_num) {
         foreach ($this->cards as $card_id => $card) {
             $played_count = 0;
