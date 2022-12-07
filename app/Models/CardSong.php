@@ -115,29 +115,34 @@ class CardSong extends Model
 
     public function displayCards($round_num) {
         foreach ($this->cards as $card_id => $card) {
+            $output = '<div class="col-4 col-md-3">';
+            $output .= "<h4>#{$card_id}</h4>";
+
             $played_count = 0;
             $max_per_row = 5;
             $cur_col = 1;
-            $grid = "";
             foreach ($card[$round_num] as $song){
-                if ($cur_col > $max_per_row) {
-                    $cur_col = 1;
-                    $grid .= "<br />";
+                if ($cur_col == 1) {
+                    $output .= "<div class=\"played_row\">";
                 }
 
                 if ($song->played) {
-                    $played_count++;
-                    $grid .= "x";
+                    $played_count++; // TODO: need to fix hover, because title will not work on mobile.
+                    $output .= "<span title=\"{$song->song_title} - {$song->artist}\">X</span>";
                 }
                 else {
-                    $grid .= "o";
+                    $output .= "<span title=\"{$song->song_title} - {$song->artist}\">o</span>";
+                }
+
+                if ($cur_col == $max_per_row) {
+                    $output .= "<br /></div>";
+                    $cur_col = 0;
                 }
                 $cur_col++;
             }
-            $output = "<h3>Card # {$card_id}</h3>";
             $total_songs = count($card[$round_num]);
-            $output .= "{$played_count} / {$total_songs}<br />";
-            $output .= $grid . "<br />";
+            $output .= "{$played_count} / {$total_songs}";
+            $output .= '</div>';
             echo $output;
         }
     }
