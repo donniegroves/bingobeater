@@ -11,13 +11,53 @@ class CardSong extends Model
 {
     use HasFactory;
 
-    private $game_id;
-    private $card_ids;
+    public $game_id;
+    public $rounds;
+    public $card_ids;
+    public $cards;
 
-    public function __construct(int $game_id)
-    {
+    public function __construct(int $game_id) {
         $this->game_id = $game_id;
-        $this->card_ids = [];
+        $this->rounds = $this->getRoundsFromDB();
+        $this->card_ids = $this->getCardIDsFromDB();
+        $this->cards = $this->getCardsFromDB();
+    }
+
+    public function getRoundsFromDB() {
+        $rounds = DB::table('card_songs')
+            ->select('round', 'round_name')
+            ->groupBy('round', 'round_name')
+            ->where('game_id', $this->game_id)
+            ->pluck('round_name', 'round')
+            ->toArray();
+        return $this->rounds = $rounds;
+    }
+
+    public function getCardIDsFromDB() {
+        $card_ids = DB::table('card_songs')
+            ->where('game_id', $this->game_id)
+            ->pluck('card_id')
+            ->unique()
+            ->toArray();
+        return $this->card_ids = $card_ids;
+    }
+
+    public function getCardsFromDB() {
+        $cards = [];
+        foreach ($this->card_ids as $card_id) {
+            foreach ($this->rounds as $round_num => $round) {
+                $cards[$card_id][$round_num] = DB::table('card_songs')
+                    ->select("song_id", "col", "row", "artist", "song_title", "played")
+                    ->where('game_id', $this->game_id)
+                    ->where('card_id', $card_id)
+                    ->where('round', $round_num)
+                    ->orderBy('row', 'asc')
+                    ->orderBy('col', 'asc')
+                    ->get()
+                    ->toArray();
+            }
+        }
+        return $this->cards = $cards;
     }
 
     public function getNewCardForGame() {
@@ -50,6 +90,55 @@ class CardSong extends Model
         return;
     }
 
+    public function displayCards($round_num) {
+        foreach ($this->cards as $card_id => $card) {
+            $played_count = 0;
+            $max_per_row = 5;
+            $cur_col = 1;
+            $grid = "";
+            foreach ($card[$round_num] as $song){
+                if ($cur_col > $max_per_row) {
+                    $cur_col = 1;
+                    $grid .= "<br />";
+                }
+
+                if ($song->played) {
+                    $played_count++;
+                    $grid .= "x";
+                }
+                else {
+                    $grid .= "o";
+                }
+                $cur_col++;
+            }
+            $output = "<br />Card # {$card_id}<br />";
+            $total_songs = count($card[$round_num]);
+            $output .= "{$played_count} / {$total_songs}<br />";
+            $output .= $grid . "<br />";
+            echo $output;
+        }
+    }
+
+    public function displayCardGrid($card_arr) {
+        foreach ($card_arr as $card_id) {
+            var_dump($card_id);exit();
+            $songs_on_card = $this->getAllSongsOnCard($card_id);
+            var_dump($songs_on_card);
+        }
+        return 'xxxxx';
+    }
+
+    public function getAllSongsOnCard($card_id) {
+        $songs = DB::table('card_songs')
+            ->select('col', 'row', 'played')
+            // ->groupBy('song_id', 'artist', 'song_title', 'played')
+            ->where('game_id', $this->game_id)
+            ->where('card_id', $card_id)
+            ->get();
+
+        return $songs;
+    }
+
     public function getAllSongsInGame() {
         $songs = DB::table('card_songs')
             ->select('artist', 'song_title', 'played')
@@ -61,12 +150,10 @@ class CardSong extends Model
         return $songs;
     }
 
+    
+
     public function getCardsStats() {
-        $card_ids = DB::table('card_songs')
-            ->where('game_id', $this->game_id)
-            ->pluck('card_id')
-            ->unique()
-            ->toArray();
+        $card_ids = $this->getCardIDsFromDB();
 
         $output = [];
         foreach ($card_ids as $card_id) {

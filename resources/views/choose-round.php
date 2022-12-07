@@ -1,6 +1,9 @@
 <?php
-echo "\r\n<pre>view-cards.php\r\n";
-$cardsong_obj->displayCards($round);
+echo "\r\n<pre>choose-round.php\r\n";
+
+foreach ($cardsong_obj->rounds as $round_num => $round_name) {
+    echo "<a href=\"view-cards?game_id={$cardsong_obj->game_id}&round={$round_num}\">{$round_name}</a><br />";
+}
 exit();
 ?>
 
