@@ -6,17 +6,26 @@
         <title>View Cards</title>
     </head>
     <body>
-        <h1>BingoBeater - View Cards</h1>
-        Rounds | Game
+        <h1><?php echo "BingoBeater - Game {$cardsong_obj->game_id} - Round {$round}";?></h1>
+        <h2>View Cards</h2>
+        <a href="<?php echo url("view-cards")."?game_id={$cardsong_obj->game_id}";?>">Rounds</a>
+         | <a href="<?php echo url(''); ?>">Game</a>
         <?php
             $cardsong_obj->displayCards($round);
+            $unique_songs = [];
             foreach ($cardsong_obj->cards as $card) {
                 foreach ($card[$round] as $song) {
-                    echo $song->played ? '<strong>' : '';
-                    echo "<a href=\"". url('toggle-played') ."?song_id={$song->song_id}\">{$song->song_title} - {$song->artist}</a><br />";
-                    echo $song->played ? '</strong>' : '';
+                    $unique_songs[$song->song_id] = $song;
                 }
             }
+
+            usort($unique_songs, fn($a, $b) => $a->song_title <=> $b->song_title);
+            foreach ($unique_songs as $song) {
+                echo $song->played ? '<strong>' : '';
+                echo "<a href=\"". url('toggle-played') ."?game_id={$cardsong_obj->game_id}&round={$round}&song_id={$song->song_id}\">{$song->song_title} - {$song->artist}</a><br />";
+                echo $song->played ? '</strong>' : '';
+            }
+            
         ?>
     </body>
 </html>

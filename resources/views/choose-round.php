@@ -8,7 +8,7 @@
     </head>
     <body>
         <h1>BingoBeater</h1>
-        Game | Cards
+        <a href="<?php echo url(''); ?>">Game</a>
         <div>
             <?php
                 foreach ($cardsong_obj->rounds as $round_num => $round_name) {

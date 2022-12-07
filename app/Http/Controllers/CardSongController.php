@@ -30,8 +30,11 @@ class CardSongController extends Controller
     }
 
     public function toggleSongPlayed(Request $request) {
+        $game_id = (int) $request->input('game_id');
+        $cardsong_obj = new CardSong($game_id);
+        $round = (int) $request->input('round');
         $song_id = (int) $request->input('song_id');
-        $cur_played_status = CardSong::getPlayedStatus($song_id);
+        $cur_played_status = $cardsong_obj->getPlayedStatus($song_id);
         $new_played_status = !$cur_played_status;
 
         try {
@@ -39,7 +42,13 @@ class CardSongController extends Controller
                 'update card_songs set played = ? where song_id = ?',
                 [$new_played_status, $song_id]
             );
-            return true;
+            return redirect()->action(
+                [CardSongController::class, 'viewCards'],
+                [
+                    'cardsong_obj' => $cardsong_obj,
+                    'game_id' => $cardsong_obj->game_id,
+                    'round' => $round
+                ]);
         } catch (\Throwable $th) {
             return false;
         }
