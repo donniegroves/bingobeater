@@ -15,12 +15,14 @@ class CardSong extends Model
     public $rounds;
     public $card_ids;
     public $cards;
+    public $songs;
 
     public function __construct(int $game_id) {
         $this->game_id = $game_id;
         $this->rounds = $this->getRoundsFromDB();
         $this->card_ids = $this->getCardIDsFromDB();
         $this->cards = $this->getCardsFromDB();
+        $this->songs = $this->getAllSongsInGameFromDB();
     }
 
     public function getRoundsFromDB() {
@@ -58,6 +60,17 @@ class CardSong extends Model
             }
         }
         return $this->cards = $cards;
+    }
+
+    public function getAllSongsInGameFromDB() {
+        $songs = DB::table('card_songs')
+            ->select('artist', 'song_title', 'played')
+            ->groupBy('song_id', 'artist', 'song_title', 'played')
+            ->where('game_id', $this->game_id)
+            ->orderBy('song_title', 'asc')
+            ->get();
+
+        return $this->songs = $songs;
     }
 
     public function getNewCardForGame() {
@@ -117,88 +130,6 @@ class CardSong extends Model
             $output .= $grid . "<br />";
             echo $output;
         }
-    }
-
-    public function displayCardGrid($card_arr) {
-        foreach ($card_arr as $card_id) {
-            var_dump($card_id);exit();
-            $songs_on_card = $this->getAllSongsOnCard($card_id);
-            var_dump($songs_on_card);
-        }
-        return 'xxxxx';
-    }
-
-    public function getAllSongsOnCard($card_id) {
-        $songs = DB::table('card_songs')
-            ->select('col', 'row', 'played')
-            // ->groupBy('song_id', 'artist', 'song_title', 'played')
-            ->where('game_id', $this->game_id)
-            ->where('card_id', $card_id)
-            ->get();
-
-        return $songs;
-    }
-
-    public function getAllSongsInGame() {
-        $songs = DB::table('card_songs')
-            ->select('artist', 'song_title', 'played')
-            ->groupBy('song_id', 'artist', 'song_title', 'played')
-            ->where('game_id', $this->game_id)
-            ->orderBy('song_title', 'asc')
-            ->get();
-
-        return $songs;
-    }
-
-    
-
-    public function getCardsStats() {
-        $card_ids = $this->getCardIDsFromDB();
-
-        $output = [];
-        foreach ($card_ids as $card_id) {
-            $output[$card_id] = [
-                "played"    => null,
-                "unplayed"  => null
-            ];
-        }
-
-        $card_stats_played = DB::table('card_songs')
-            ->select(DB::raw('COUNT(played) as played_count'))
-            ->addSelect('card_id')
-            ->where('game_id', $this->game_id)
-            ->where('played', 1)
-            ->whereIn('card_id', $card_ids)
-            ->groupBy('card_id')
-            ->get()
-            ->toArray();
-        $card_stats_unplayed = DB::table('card_songs')
-            ->select(DB::raw('COUNT(played) as unplayed_count'))
-            ->addSelect('card_id')
-            ->where('game_id', $this->game_id)
-            ->where('played', 0)
-            ->whereIn('card_id', $card_ids)
-            ->groupBy('card_id')
-            ->get()
-            ->toArray();
-
-        foreach ($card_stats_played as $played) {
-            $output[$played->card_id]["played"] = $played->played_count;
-        }
-        foreach ($card_stats_unplayed as $unplayed) {
-            $output[$unplayed->card_id]["unplayed"] = $unplayed->unplayed_count;
-        }
-        
-        return $output;
-    }
-
-    public function getCurrentCardCount() {
-        return DB::table('card_songs')
-            ->select('card_id')
-            ->where('game_id', $this->game_id)
-            ->groupBy('card_id')
-            ->get()
-            ->count();
     }
 
     public function processCards() {

@@ -12,7 +12,7 @@ class CardSongController extends Controller
         $cardsong_obj = new CardSong($game_id);
 
         // determining if at least 2 existing cards exist already.
-        $existing_num_of_cards = $cardsong_obj->getCurrentCardCount();
+        $existing_num_of_cards = count($cardsong_obj->card_ids);
         if ($existing_num_of_cards < 2) {
             for($i=0;$i<2;$i++) {
                 $cardsong_obj->getNewCardForGame();

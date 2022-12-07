@@ -1,6 +1,11 @@
 <?php
 echo "\r\n<pre>view-cards.php\r\n";
 $cardsong_obj->displayCards($round);
+foreach ($cardsong_obj->cards as $card) {
+    foreach ($card[$round] as $song) {
+        echo "{$song->song_title} - {$song->artist}<br />";
+    }
+}
 exit();
 ?>
 
