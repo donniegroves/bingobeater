@@ -14,13 +14,15 @@ class CardSongController extends Controller
 
         // determining if at least 2 existing cards exist already.
         $existing_num_of_cards = count($cardsong_obj->card_ids);
-        if ($existing_num_of_cards < 2) {
-            for($i=0;$i<2;$i++) {
+        if ($existing_num_of_cards < 12) {
+            for($i=0;$i<12;$i++) {
                 $cardsong_obj->getNewCardForGame();
+                sleep(4);
             }
             $cardsong_obj->processCards();
         }
 
+        $cardsong_obj = new CardSong($game_id);
         if (empty($request->input('round'))) {
             return view('choose-round', ['cardsong_obj' => $cardsong_obj]);
         }

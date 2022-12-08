@@ -116,8 +116,7 @@ class CardSong extends Model
     public function displayCards($round_num) {
         foreach ($this->cards as $card_id => $card) {
             $output = '<div class="col-3 mb-4 gx-3">';
-            $output .= "<div class=\"row\"><div class=\"col\"><h4>#{$card_id}</h4></div></div>";
-            
+            $output .= "<div class=\"row\"><div class=\"col\"><h4>#<a href=\"".env('EXTERNAL_BINGO_URL','')."?GameID={$this->game_id}&CardID=Auto&GenerateCardID={$card_id}\">{$card_id}</a></h4></div></div>";
 
             $played_count = 0;
             $max_per_row = 5;
@@ -171,7 +170,7 @@ class CardSong extends Model
                             "game_id"    => $this->game_id,
                             "card_id"    => $card_id,
                             "round"      => $_round,
-                            "round_name" => str_replace('<BR>','-',$_round_name),
+                            "round_name" => str_replace(['<BR>', '<br>'],'-',$_round_name),
                             "col"        => $_col,
                             "row"        => $_row,
                             "artist"     => $_artist,
