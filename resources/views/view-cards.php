@@ -9,6 +9,23 @@
     </head>
     <body>
         <div class="container">
+
+        <style>
+            .unplayed-box {
+                border-style: solid;
+                border-width: 1px;
+                height: 14px;
+                width: 14px;
+            }
+            .played-box {
+                border-style: solid;
+                border-width: 1px;
+                height: 14px;
+                width: 14px;
+                background-color: red;
+            }
+        </style>
+        
             <div class="row">
                 <div class="col col-md-auto text-center">
                     <a href="<?php echo url(''); ?>">Game</a>
@@ -20,14 +37,12 @@
             <div class="row">
                 <div class="col">
                     <h1><?php echo "BingoBeater - Game {$cardsong_obj->game_id} - Round {$round}";?></h1>
-                    <h2>View Cards</h2>
                 </div>
             </div>
 
             <div class="row">
                 <?php $cardsong_obj->displayCards($round); ?>
             </div>
-
             
             <?php
                 $unique_songs = [];
@@ -45,6 +60,5 @@
                 }
             ?>
         </div>
-        
     </body>
 </html>

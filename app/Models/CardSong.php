@@ -115,27 +115,30 @@ class CardSong extends Model
 
     public function displayCards($round_num) {
         foreach ($this->cards as $card_id => $card) {
-            $output = '<div class="col-4 col-md-3">';
-            $output .= "<h4>#{$card_id}</h4>";
+            $output = '<div class="col-3 mb-4 gx-3">';
+            $output .= "<div class=\"row\"><div class=\"col\"><h4>#{$card_id}</h4></div></div>";
+            
 
             $played_count = 0;
             $max_per_row = 5;
             $cur_col = 1;
             foreach ($card[$round_num] as $song){
                 if ($cur_col == 1) {
-                    $output .= "<div class=\"played_row\">";
+                    $output .= "<div class='row m-0 p-0'>";
                 }
 
                 if ($song->played) {
                     $played_count++; // TODO: need to fix hover, because title will not work on mobile.
-                    $output .= "<span title=\"{$song->song_title} - {$song->artist}\">X</span>";
+                    // $output .= "<div class=\"col-auto p-0\"><img src=\"red1515.png\"></div>";
+                    $output .= "<div class=\"col-auto p-0 played-box\" title=\"{$song->song_title} - {$song->artist}\"></div>";
                 }
                 else {
-                    $output .= "<span title=\"{$song->song_title} - {$song->artist}\">o</span>";
+                    // $output .= "<div class=\"col-auto p-0\"><img src=\"red1515.png\"></div>";
+                    $output .= "<div class=\"col-auto p-0 unplayed-box\" title=\"{$song->song_title} - {$song->artist}\"></div>";
                 }
 
                 if ($cur_col == $max_per_row) {
-                    $output .= "<br /></div>";
+                    $output .= "</div>";
                     $cur_col = 0;
                 }
                 $cur_col++;
