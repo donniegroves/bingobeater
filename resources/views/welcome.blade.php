@@ -10,9 +10,10 @@
         <h1>BingoBeater</h1>
         
         <div>
-            <h3>Game ID</h3>
+            <h3>Game ID / Passcode</h3>
             <form action="view-cards" method="get">
                 <input type="text" name="game_id" id="game_id">
+                <input type="text" name="passcode" id="passcode">
                 <a href="{{ url('view-cards') }}">
                     <button type="submit">Submit</button>
                 </a>

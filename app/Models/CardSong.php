@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cookie;
 use PHPHtmlParser\Dom;
 
 class CardSong extends Model
@@ -23,6 +24,19 @@ class CardSong extends Model
         $this->card_ids = $this->getCardIDsFromDB();
         $this->cards = $this->getCardsFromDB();
         $this->songs = $this->getAllSongsInGameFromDB();
+    }
+
+    public function checkAuth($passcode){
+        if ($passcode == env('BINGO_PASSCODE', rand())){
+            Cookie::queue('passcode', $passcode, 120);
+            return true;
+        }
+
+        if (Cookie::get('passcode') == env('BINGO_PASSCODE', rand())) {
+            return true;
+        }
+
+        return false;
     }
 
     public function getRoundsFromDB() {

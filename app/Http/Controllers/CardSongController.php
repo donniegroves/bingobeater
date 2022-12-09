@@ -10,12 +10,18 @@ class CardSongController extends Controller
 {
     public function viewCards(Request $request) {
         $game_id = (int) $request->input('game_id');
+        $passcode = $request->input('passcode') ?? null;
         $cardsong_obj = new CardSong($game_id);
+
+        if (!($cardsong_obj->checkAuth($passcode))) {
+            return redirect(url(''));
+        }
 
         // determining if at least 2 existing cards exist already.
         $existing_num_of_cards = count($cardsong_obj->card_ids);
-        if ($existing_num_of_cards < 12) {
-            for($i=0;$i<12;$i++) {
+        $default_cards = env('DEFAULT_CARD_QUANTITY', 1);
+        if ($existing_num_of_cards < $default_cards) {
+            for($i=0;$i<$default_cards;$i++) {
                 $cardsong_obj->getNewCardForGame();
                 sleep(4);
             }
@@ -34,6 +40,11 @@ class CardSongController extends Controller
     public function toggleSongPlayed(Request $request) {
         $game_id = (int) $request->input('game_id');
         $cardsong_obj = new CardSong($game_id);
+
+        if (!$cardsong_obj->checkAuth(null)) {
+            return view('view-cards');
+        }
+
         $round = (int) $request->input('round');
         $song_id = (int) $request->input('song_id');
         $cur_played_status = $cardsong_obj->getPlayedStatus($song_id);
