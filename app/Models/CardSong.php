@@ -157,7 +157,7 @@ class CardSong extends Model
                 $cur_col++;
             }
             $total_songs = count($card[$round_num]);
-            $output .= "{$played_count} / {$total_songs}";
+            // $output .= "{$played_count} / {$total_songs}";
             $output .= '</div>';
             echo $output;
         }

@@ -28,10 +28,13 @@
         
             <div class="row">
                 <div class="col col-md-auto text-center">
-                    <a href="<?php echo url(''); ?>">Game</a>
+                    <a class="btn btn-primary" href="<?php echo url(''); ?>">Game</a>
                 </div>
                 <div class="col col-md-auto text-center">
-                    <a href="<?php echo url("view-cards")."?game_id={$cardsong_obj->game_id}";?>">Rounds</a>
+                    <a class="btn btn-primary" href="<?php echo url("view-cards")."?game_id={$cardsong_obj->game_id}";?>">Rounds</a>
+                </div>
+                <div class="col col-md-auto text-center">
+                    <a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCard">Add Card</a>
                 </div>
             </div>
             <div class="row">
@@ -42,6 +45,26 @@
 
             <div class="row">
                 <?php $cardsong_obj->displayCards($round); ?>
+            </div>
+
+            <div class="modal fade" id="addCard">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Add Card #</h3>
+                            <button class="btn-close" data-bs-dismiss="modal" data-bs-target="#addCard"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="addCard" method="post">
+                                <input type="hidden" name="game_id" value="<?php echo $cardsong_obj->game_id; ?>">
+                                <div class="input-group">
+                                    <input type="number" name="card_id" id="card_id" class="form-control">
+                                    <button class="btn btn-primary">Add</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <?php
