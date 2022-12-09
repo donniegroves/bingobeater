@@ -163,39 +163,40 @@ class CardSong extends Model
         }
     }
 
-    public function processCards() {
-        // getting songs for each card
-        foreach ($this->card_ids as $card_id) {
-            $songs_by_round = $this->getSongsOnCard($card_id);
-            echo '<pre>';
-            foreach ($songs_by_round as $round_key => $round) {
-                $_round_name = $round->Name;
-                $_round = $round_key + 1;
-                foreach ($round->Columns as $key => $col) {
-                    $_col = $key + 1;
-                    foreach ($col as $r_key => $row) {
-                        $_row = $r_key + 1;
-                        $_id = $row->ID;
-                        $_artist = $row->FullArtist;
-                        $_song_title = $row->FullTitle;
+    public function addOneCard(int $card_id) {
+        $this->addSongsForCard($card_id);
+    }
 
-                        $rows_for_insert[] = [
-                            "song_id"    => $_id,
-                            "game_id"    => $this->game_id,
-                            "card_id"    => $card_id,
-                            "round"      => $_round,
-                            "round_name" => str_replace(['<BR>', '<br>'],'-',$_round_name),
-                            "col"        => $_col,
-                            "row"        => $_row,
-                            "artist"     => $_artist,
-                            "song_title" => $_song_title,
-                        ];
-                    }
+    public function addSongsForCard(int $card_id) {
+        $songs_by_round = $this->getSongsOnCard($card_id);
+        foreach ($songs_by_round as $round_key => $round) {
+            $_round_name = $round->Name;
+            $_round = $round_key + 1;
+            foreach ($round->Columns as $key => $col) {
+                $_col = $key + 1;
+                foreach ($col as $r_key => $row) {
+                    $_row = $r_key + 1;
+                    $_id = $row->ID;
+                    $_artist = $row->FullArtist;
+                    $_song_title = $row->FullTitle;
+
+                    $rows_for_insert[] = [
+                        "song_id"    => $_id,
+                        "game_id"    => $this->game_id,
+                        "card_id"    => $card_id,
+                        "round"      => $_round,
+                        "round_name" => str_replace(['<BR>', '<br>'],'-',$_round_name),
+                        "col"        => $_col,
+                        "row"        => $_row,
+                        "artist"     => $_artist,
+                        "song_title" => $_song_title,
+                    ];
                 }
             }
         }
 
-        // TODO: put this above to not duplicate.
+        $played_song_ids = self::getPlayedSongIDs($this->game_id);
+
         foreach ($rows_for_insert as $row) {
             DB::table('card_songs')->insert([
                 'song_id'       => $row['song_id'],
@@ -207,7 +208,25 @@ class CardSong extends Model
                 'row'           => $row['row'],
                 'artist'        => $row['artist'],
                 'song_title'    => $row['song_title'],
+                'played'        => in_array($row['song_id'], $played_song_ids) ? 1 : 0
             ]);
+        }
+    }
+
+    private function getPlayedSongIDs(int $game_id) {
+        $played_songs = DB::table('card_songs')
+            ->select("song_id")
+            ->where('game_id', $game_id)
+            ->where('played', 1)
+            ->pluck('song_id')
+            ->toArray();
+
+        return array_unique($played_songs);
+    }
+
+    public function processCards() {
+        foreach ($this->card_ids as $card_id) {
+            $this->addSongsForCard($card_id);
         }
     }
 

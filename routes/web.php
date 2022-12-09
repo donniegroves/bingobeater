@@ -19,4 +19,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('view-cards', [CardSongController::class, 'viewCards']);
+Route::post('add-card', [CardSongController::class, 'addCard']);
 Route::get('toggle-played', [CardSongController::class, 'toggleSongPlayed']);

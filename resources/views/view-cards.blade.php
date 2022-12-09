@@ -55,7 +55,8 @@
                             <button class="btn-close" data-bs-dismiss="modal" data-bs-target="#addCard"></button>
                         </div>
                         <div class="modal-body">
-                            <form action="addCard" method="post">
+                            <form action="add-card" method="post">
+                                {{ csrf_field() }}
                                 <input type="hidden" name="game_id" value="<?php echo $cardsong_obj->game_id; ?>">
                                 <div class="input-group">
                                     <input type="number" name="card_id" id="card_id" class="form-control">
