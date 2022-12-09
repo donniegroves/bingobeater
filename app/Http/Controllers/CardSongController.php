@@ -44,7 +44,12 @@ class CardSongController extends Controller
         $cardsong_obj = new CardSong($game_id);
         $cardsong_obj->addOneCard($card_id);
 
-        return view('view-cards', ['game_id' => $game_id]);
+        return redirect()->action(
+            [CardSongController::class, 'viewCards'],
+            [
+                'cardsong_obj' => $cardsong_obj,
+                'game_id' => $cardsong_obj->game_id
+            ]);
     }
 
     public function toggleSongPlayed(Request $request) {

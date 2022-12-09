@@ -255,10 +255,6 @@ class CardSong extends Model
         return json_decode($response)->Rounds;
     }
 
-    public function toggleSongPlayed($song_id) {
-        return redirect('view-cards')->with('status', 'Song mark toggled.');
-    }
-
     private function getAQT($game_id, $card_id) {
         $curl = curl_init();
 
