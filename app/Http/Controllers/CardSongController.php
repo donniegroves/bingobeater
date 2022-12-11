@@ -56,6 +56,7 @@ class CardSongController extends Controller
         $game_id = (int) $request->input('game_id');
         $cardsong_obj = new CardSong($game_id);
 
+        // checking auth, will default to only checking cookie.
         if (!$cardsong_obj->checkAuth(null)) {
             return view('view-cards');
         }

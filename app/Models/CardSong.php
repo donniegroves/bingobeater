@@ -16,20 +16,23 @@ class CardSong extends Model
     public $rounds;
     public $card_ids;
     public $cards;
-    public $songs;
 
     public function __construct(int $game_id) {
         $this->game_id = $game_id;
         $this->rounds = $this->getRoundsFromDB();
         $this->card_ids = $this->getCardIDsFromDB();
         $this->cards = $this->getCardsFromDB();
-        $this->songs = $this->getAllSongsInGameFromDB();
     }
 
-    public function checkAuth($passcode){
-        if ($passcode == env('BINGO_PASSCODE', rand())){
-            Cookie::queue('passcode', $passcode, 120);
-            return true;
+    /**
+     * Returns bool if passcode matches OR if proper cookie is set.
+     *
+     * @param string $passcode
+     * @return boolean
+     */
+    public function checkAuth(string $passcode = ''): bool {
+        if (!getenv('BINGO_PASSCODE')) {
+            return false;
         }
 
         if (Cookie::get('passcode') == env('BINGO_PASSCODE', rand())) {
@@ -39,7 +42,13 @@ class CardSong extends Model
         return false;
     }
 
-    public function getRoundsFromDB() {
+    /**
+     * Sets $this->rounds, and returns an array of rounds with
+     * their corresponding name using the preset game_id.
+     *
+     * @return array
+     */
+    public function getRoundsFromDB(): array {
         $rounds = DB::table('card_songs')
             ->select('round', 'round_name')
             ->groupBy('round', 'round_name')
@@ -49,7 +58,13 @@ class CardSong extends Model
         return $this->rounds = $rounds;
     }
 
-    public function getCardIDsFromDB() {
+    /**
+     * Sets $this->card_ids and returns an array of card ids within database
+     * matching the preset game_id.
+     *
+     * @return array
+     */
+    public function getCardIDsFromDB(): array {
         $card_ids = DB::table('card_songs')
             ->where('game_id', $this->game_id)
             ->pluck('card_id')
@@ -58,7 +73,13 @@ class CardSong extends Model
         return $this->card_ids = $card_ids;
     }
 
-    public function getCardsFromDB() {
+    /**
+     * Sets $this->cards and returns all information related to the game_id
+     * organized by card_id and round_num.
+     *
+     * @return array
+     */
+    public function getCardsFromDB(): array {
         $cards = [];
         foreach ($this->card_ids as $card_id) {
             foreach ($this->rounds as $round_num => $round) {
@@ -74,17 +95,6 @@ class CardSong extends Model
             }
         }
         return $this->cards = $cards;
-    }
-
-    public function getAllSongsInGameFromDB() {
-        $songs = DB::table('card_songs')
-            ->select('artist', 'song_title', 'played')
-            ->groupBy('song_id', 'artist', 'song_title', 'played')
-            ->where('game_id', $this->game_id)
-            ->orderBy('song_title', 'asc')
-            ->get();
-
-        return $this->songs = $songs;
     }
 
     public function getNewCardForGame() {
