@@ -25,21 +25,38 @@ class CardSong extends Model
     }
 
     /**
-     * Returns bool if passcode matches OR if proper cookie is set.
+     * Verifies that passcode is set in environment, and that passcode matches it.
      *
      * @param string $passcode
      * @return boolean
      */
-    public function checkAuth(string $passcode = ''): bool {
-        if (!getenv('BINGO_PASSCODE')) {
+    public function verifyPasscode(string $passcode): bool {
+        if (empty(getenv('BINGO_PASSCODE')) || $passcode !== getenv('BINGO_PASSCODE')) {
             return false;
         }
+        return true;       
+    }
 
-        if (Cookie::get('passcode') == env('BINGO_PASSCODE', rand())) {
-            return true;
+    /**
+     * adds cookie into queue for correct passcode.
+     *
+     * @param string $passcode
+     * @return void
+     */
+    public function setPasscodeCookie(string $passcode): void {
+        Cookie::queue('passcode', $passcode, 240);
+    }
+
+    /**
+     * Checks that passcode environment var is set, and that cookie matches that passcode.
+     *
+     * @return boolean
+     */
+    public function checkCookie(): bool {
+        if (empty(getenv('BINGO_PASSCODE')) || Cookie::get('passcode') !== getenv('BINGO_PASSCODE')) {
+            return false;
         }
-
-        return false;
+        return true;
     }
 
     /**
@@ -97,37 +114,13 @@ class CardSong extends Model
         return $this->cards = $cards;
     }
 
-    public function getNewCardForGame() {
-        $curl = curl_init();
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => env('EXTERNAL_BINGO_URL',''),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "GameID={$this->game_id}&CardID=Auto&GenerateCardID=GenerateNewID",
-            CURLOPT_HTTPHEADER => [
-                "Content-Type: application/x-www-form-urlencoded"
-            ],
-            CURLOPT_SSL_VERIFYPEER => 0
-        ]);
-
-        $response = curl_exec($curl);
-        curl_close($curl);
-
-        $dom = new Dom;
-        $dom->loadStr($response);
-        $card_id = $dom->find(".container input[name='CardID']")->getAttribute('value');
-
-        $this->card_ids[] = (int) $card_id;
-
-        return;
-    }
-
-    public static function getPlayedStatus(int $song_id) {
+    /**
+     * Returns true/false of whether song_id has been played or not.
+     *
+     * @param integer $song_id
+     * @return boolean
+     */
+    public static function getPlayedStatus(int $song_id): bool {
         $played_status = DB::table('card_songs')
             ->select("played")
             ->where('song_id', $song_id)
@@ -138,25 +131,34 @@ class CardSong extends Model
     }
 
     public function displayCards($round_num) {
+        $sorted_card_ids = [];
         foreach ($this->cards as $card_id => $card) {
+            $play_count = 0;
+            foreach ($card[$round_num] as $song){
+                if ($song->played) {
+                    $play_count++;
+                }
+            }
+            $sorted_card_ids[$card_id] = $play_count;
+        }
+        arsort($sorted_card_ids);    
+        $sorted_card_ids = array_keys($sorted_card_ids);
+
+        foreach ($sorted_card_ids as $card_id) {
             $output = '<div class="col-3 mb-4 gx-3">';
             $output .= "<div class=\"row\"><div class=\"col\"><h4>#<a href=\"".env('EXTERNAL_BINGO_URL','')."?GameID={$this->game_id}&CardID=Auto&GenerateCardID={$card_id}\">{$card_id}</a></h4></div></div>";
 
-            $played_count = 0;
             $max_per_row = 5;
             $cur_col = 1;
-            foreach ($card[$round_num] as $song){
+            foreach ($this->cards[$card_id][$round_num] as $song) {
                 if ($cur_col == 1) {
                     $output .= "<div class='row m-0 p-0'>";
                 }
 
                 if ($song->played) {
-                    $played_count++; // TODO: need to fix hover, because title will not work on mobile.
-                    // $output .= "<div class=\"col-auto p-0\"><img src=\"red1515.png\"></div>";
                     $output .= "<div class=\"col-auto p-0 played-box\" title=\"{$song->song_title} - {$song->artist}\"></div>";
                 }
                 else {
-                    // $output .= "<div class=\"col-auto p-0\"><img src=\"red1515.png\"></div>";
                     $output .= "<div class=\"col-auto p-0 unplayed-box\" title=\"{$song->song_title} - {$song->artist}\"></div>";
                 }
 
@@ -166,8 +168,6 @@ class CardSong extends Model
                 }
                 $cur_col++;
             }
-            $total_songs = count($card[$round_num]);
-            // $output .= "{$played_count} / {$total_songs}";
             $output .= '</div>';
             echo $output;
         }
@@ -238,6 +238,34 @@ class CardSong extends Model
         foreach ($this->card_ids as $card_id) {
             $this->addSongsForCard($card_id);
         }
+    }
+
+    public function getNewCardForGame(): void {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => env('EXTERNAL_BINGO_URL',''),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "GameID={$this->game_id}&CardID=Auto&GenerateCardID=GenerateNewID",
+            CURLOPT_HTTPHEADER => [
+                "Content-Type: application/x-www-form-urlencoded"
+            ],
+            CURLOPT_SSL_VERIFYPEER => 0
+        ]);
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        $dom = new Dom;
+        $dom->loadStr($response);
+        $card_id = $dom->find(".container input[name='CardID']")->getAttribute('value');
+
+        $this->card_ids[] = (int) $card_id;
     }
 
     public function getSongsOnCard(int $card_id) {

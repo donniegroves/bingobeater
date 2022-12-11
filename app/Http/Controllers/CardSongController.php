@@ -13,8 +13,13 @@ class CardSongController extends Controller
         $passcode = $request->input('passcode') ?? null;
         $cardsong_obj = new CardSong($game_id);
 
-        if (!($cardsong_obj->checkAuth($passcode))) {
-            return redirect(url(''));
+        if (!empty($passcode) && $cardsong_obj->verifyPasscode($passcode)) {
+            $cardsong_obj->setPasscodeCookie($passcode);
+        }
+        else {
+            if (!$cardsong_obj->checkCookie()){
+                return redirect('/');
+            };
         }
 
         // determining if at least 2 existing cards exist already.
@@ -55,11 +60,10 @@ class CardSongController extends Controller
     public function toggleSongPlayed(Request $request) {
         $game_id = (int) $request->input('game_id');
         $cardsong_obj = new CardSong($game_id);
-
-        // checking auth, will default to only checking cookie.
-        if (!$cardsong_obj->checkAuth(null)) {
-            return view('view-cards');
-        }
+        
+        if (!$cardsong_obj->checkCookie()){
+            return redirect('/');
+        };
 
         $round = (int) $request->input('round');
         $song_id = (int) $request->input('song_id');
