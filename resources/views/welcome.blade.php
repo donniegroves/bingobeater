@@ -3,25 +3,29 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <title>BingoBeater - Welcome</title>
+        <title>View Cards</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     </head>
     <body>
-        <h1>BingoBeater</h1>
-        
-        <div>
-            <h3>Game ID / Passcode</h3>
-            <form action="view-cards" method="get">
-                <input type="text" name="game_id" id="game_id">
-                <input type="password" name="passcode" id="passcode">
-                <a href="{{ url('view-cards') }}">
-                    <button type="submit">Submit</button>
-                </a>
-            </form>
-        </div>
-        <div>
-            <h3>Reset</h3>
-            <button type="submit">Reset All</button>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h1>BingoBeater</h1>
+                    <h3>Game ID / Passcode</h3>
+                    <form action="view-cards" method="get">
+                        <div class="mb-3">
+                            <label for="game_id" class="form-label">Game ID</label>
+                            <input type="number" class="form-control" name="game_id" id="game_id" placeholder="Game ID">
+                        </div>
+                        <div class="mb-3">
+                            <label for="passcode" class="form-label">Passcode</label>
+                            <input type="password" class="form-control" name="passcode" id="passcode" placeholder="Passcode">
+                        </div>
+                        <button class="btn btn-primary" type="submit">Submit</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </body>
 </html>
