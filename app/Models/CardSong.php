@@ -130,7 +130,15 @@ class CardSong extends Model
         return (bool) $played_status[0];
     }
 
-    public function displayCards($round_num) {
+    /**
+     * Uses preset game_id and provided round_num, and echoes out rows
+     * and a grid displaying play count. Cards are returned in order of most-played.
+     *
+     * @param integer $round_num
+     * @return void
+     */
+    public function displayCards(int $round_num): void {
+        // getting card ids in order of playcount
         $sorted_card_ids = [];
         foreach ($this->cards as $card_id => $card) {
             $play_count = 0;
@@ -177,7 +185,15 @@ class CardSong extends Model
         $this->addSongsForCard($card_id);
     }
 
-    public function addSongsForCard(int $card_id) {
+
+    /**
+     * Retrieves songs from external source for a provided card_id.
+     * If any song_id is already played, it will be marked played for added songs.
+     *
+     * @param integer $card_id
+     * @return void
+     */
+    public function addSongsForCard(int $card_id): void {
         $songs_by_round = $this->getSongsOnCard($card_id);
         foreach ($songs_by_round as $round_key => $round) {
             $_round_name = $round->Name;
@@ -205,7 +221,7 @@ class CardSong extends Model
             }
         }
 
-        $played_song_ids = self::getPlayedSongIDs($this->game_id);
+        $played_song_ids = self::getPlayedSongIDsFromDB($this->game_id);
 
         foreach ($rows_for_insert as $row) {
             DB::table('card_songs')->insert([
@@ -223,7 +239,13 @@ class CardSong extends Model
         }
     }
 
-    private function getPlayedSongIDs(int $game_id) {
+    /**
+     * Returns all played song_ids in an array, for any provided game_id.
+     *
+     * @param integer $game_id
+     * @return array
+     */
+    private function getPlayedSongIDsFromDB(int $game_id): array {
         $played_songs = DB::table('card_songs')
             ->select("song_id")
             ->where('game_id', $game_id)
@@ -234,24 +256,29 @@ class CardSong extends Model
         return array_unique($played_songs);
     }
 
-    public function processCards() {
+    /**
+     * retrieves songs for all cards in $this->cards_ids from external site.
+     *
+     * @return void
+     */
+    public function processCards(): void {
         foreach ($this->card_ids as $card_id) {
             $this->addSongsForCard($card_id);
         }
     }
 
-    public function getNewCardForGame(): void {
+    public function getFromExternalSite($url, $reqtype = 'GET', $postfields = '') {
         $curl = curl_init();
 
         curl_setopt_array($curl, [
-            CURLOPT_URL => env('EXTERNAL_BINGO_URL',''),
+            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "GameID={$this->game_id}&CardID=Auto&GenerateCardID=GenerateNewID",
+            CURLOPT_CUSTOMREQUEST => $reqtype,
+            CURLOPT_POSTFIELDS => $postfields,
             CURLOPT_HTTPHEADER => [
                 "Content-Type: application/x-www-form-urlencoded"
             ],
@@ -260,6 +287,13 @@ class CardSong extends Model
 
         $response = curl_exec($curl);
         curl_close($curl);
+
+        return $response;
+    }
+
+    public function getNewCardForGame(): void {
+        $url = env('EXTERNAL_BINGO_URL','');
+        $response = $this->getFromExternalSite(url: $url, reqtype: 'POST', postfields: "GameID={$this->game_id}&CardID=Auto&GenerateCardID=GenerateNewID");
 
         $dom = new Dom;
         $dom->loadStr($response);
@@ -270,49 +304,14 @@ class CardSong extends Model
 
     public function getSongsOnCard(int $card_id) {
         $aqt = $this->getAQT($this->game_id, $card_id);
-        $curl = curl_init();
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => env('EXTERNAL_BINGO_URL','')."?AQT={$aqt}&Field=JSON",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_POSTFIELDS => "",
-            CURLOPT_HTTPHEADER => [
-                "Content-Type: application/x-www-form-urlencoded"
-            ],
-            CURLOPT_SSL_VERIFYPEER => 0
-        ]);
-
-        $response = curl_exec($curl);
-        curl_close($curl);
-
+        $url = env('EXTERNAL_BINGO_URL','')."?AQT={$aqt}&Field=JSON";
+        $response = $this->getFromExternalSite(url: $url);
         return json_decode($response)->Rounds;
     }
 
     private function getAQT($game_id, $card_id) {
-        $curl = curl_init();
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => env('EXTERNAL_BINGO_URL',''),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "GameID={$game_id}&CardID={$card_id}",
-            CURLOPT_HTTPHEADER => [
-                "Content-Type: application/x-www-form-urlencoded"
-            ],
-            CURLOPT_SSL_VERIFYPEER => 0
-        ]);
-
-        $response = curl_exec($curl);
-        curl_close($curl);
+        $url = env('EXTERNAL_BINGO_URL','');
+        $response = $this->getFromExternalSite(url: $url, reqtype: 'POST', postfields: "GameID={$game_id}&CardID={$card_id}");
         preg_match('/(?<=LSID\(\) { return ")\d*(?="; })/', $response, $matches);
         return (int) $matches[0];
     }
