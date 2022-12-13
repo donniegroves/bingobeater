@@ -22,7 +22,11 @@
                 border-width: 1px;
                 height: 14px;
                 width: 14px;
-                background-color: red;
+                background-color: aqua;
+            }
+
+            .played-box.row-complete {
+                background-color: orange;
             }
         </style>
         

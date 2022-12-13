@@ -153,18 +153,50 @@ class CardSong extends Model
         $sorted_card_ids = array_keys($sorted_card_ids);
 
         foreach ($sorted_card_ids as $card_id) {
-            $output = '<div class="col-3 mb-4 gx-3">';
+            $output = '<div class="col-3 mb-4 gx-2">';
             $output .= "<div class=\"row\"><div class=\"col\"><h4>#<a href=\"".env('EXTERNAL_BINGO_URL','')."?GameID={$this->game_id}&CardID=Auto&GenerateCardID={$card_id}\">{$card_id}</a></h4></div></div>";
 
             $max_per_row = 5;
             $cur_col = 1;
-            foreach ($this->cards[$card_id][$round_num] as $song) {
+            foreach ($this->cards[$card_id][$round_num] as $key => $song) {
+                // determining if entire row is played.
+                $keys_to_consider = [];
+                switch ($cur_col) {
+                    case 1:
+                        $keys_to_consider = [$key, $key+1, $key+2, $key+3, $key+4];
+                        break;
+                    case 2:
+                        $keys_to_consider = [$key-1, $key, $key+1, $key+2, $key+3];
+                        break;
+                    case 3:
+                        $keys_to_consider = [$key-2, $key-1, $key, $key+1, $key+2];
+                        break;
+                    case 4:
+                        $keys_to_consider = [$key-3, $key-2, $key-1, $key, $key+1];
+                        break;
+                    case 5:
+                        $keys_to_consider = [$key-4, $key-3, $key-2, $key-1, $key];
+                        break;
+                }
+                if (
+                    $this->cards[$card_id][$round_num][$keys_to_consider[0]]->played &&
+                    $this->cards[$card_id][$round_num][$keys_to_consider[1]]->played &&
+                    $this->cards[$card_id][$round_num][$keys_to_consider[2]]->played &&
+                    $this->cards[$card_id][$round_num][$keys_to_consider[3]]->played &&
+                    $this->cards[$card_id][$round_num][$keys_to_consider[4]]->played
+                ) {
+                    $row_is_complete = true;
+                }
+                else {
+                    $row_is_complete = false;
+                }
+                
                 if ($cur_col == 1) {
                     $output .= "<div class='row m-0 p-0'>";
                 }
 
                 if ($song->played) {
-                    $output .= "<div class=\"col-auto p-0 played-box\" title=\"{$song->song_title} - {$song->artist}\"></div>";
+                    $output .= "<div class=\"col-auto p-0 played-box".($row_is_complete ? " row-complete" : "")."\" title=\"{$song->song_title} - {$song->artist}\"></div>";
                 }
                 else {
                     $output .= "<div class=\"col-auto p-0 unplayed-box\" title=\"{$song->song_title} - {$song->artist}\"></div>";
