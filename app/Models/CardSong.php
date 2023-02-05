@@ -34,7 +34,7 @@ class CardSong extends Model
         if (empty(getenv('BINGO_PASSCODE')) || $passcode !== getenv('BINGO_PASSCODE')) {
             return false;
         }
-        return true;       
+        return true;
     }
 
     /**
@@ -149,7 +149,7 @@ class CardSong extends Model
             }
             $sorted_card_ids[$card_id] = $play_count;
         }
-        arsort($sorted_card_ids);    
+        arsort($sorted_card_ids);
         $sorted_card_ids = array_keys($sorted_card_ids);
 
         foreach ($sorted_card_ids as $card_id) {
@@ -190,7 +190,7 @@ class CardSong extends Model
                 else {
                     $row_is_complete = false;
                 }
-                
+
                 if ($cur_col == 1) {
                     $output .= "<div class='row m-0 p-0'>";
                 }
@@ -293,10 +293,8 @@ class CardSong extends Model
      *
      * @return void
      */
-    public function processCards(): void {
-        foreach ($this->card_ids as $card_id) {
-            $this->addSongsForCard($card_id);
-        }
+    public function processCard($card_id): void {
+        $this->addSongsForCard($card_id);
     }
 
     public function getFromExternalSite($url, $reqtype = 'GET', $postfields = '') {
@@ -323,7 +321,7 @@ class CardSong extends Model
         return $response;
     }
 
-    public function getNewCardForGame(): void {
+    public function getNewCardForGame(): int {
         $url = env('EXTERNAL_BINGO_URL','');
         $response = $this->getFromExternalSite(url: $url, reqtype: 'POST', postfields: "GameID={$this->game_id}&CardID=Auto&GenerateCardID=GenerateNewID");
 
@@ -331,7 +329,7 @@ class CardSong extends Model
         $dom->loadStr($response);
         $card_id = $dom->find(".container input[name='CardID']")->getAttribute('value');
 
-        $this->card_ids[] = (int) $card_id;
+        return $this->card_ids[] = (int) $card_id;
     }
 
     public function getSongsOnCard(int $card_id) {

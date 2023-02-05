@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessGameCard;
 use App\Models\CardSong;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,15 +23,12 @@ class CardSongController extends Controller
             };
         }
 
-        // determining if at least 2 existing cards exist already.
         $existing_num_of_cards = count($cardsong_obj->card_ids);
         $default_cards = env('DEFAULT_CARD_QUANTITY', 1);
         if ($existing_num_of_cards < $default_cards) {
-            for($i=0;$i<$default_cards;$i++) {
-                $cardsong_obj->getNewCardForGame();
-                sleep(4);
+            for($i=$existing_num_of_cards;$i<$default_cards;$i++) {
+                ProcessGameCard::dispatch($game_id);
             }
-            $cardsong_obj->processCards();
         }
 
         $cardsong_obj = new CardSong($game_id);
@@ -60,7 +58,7 @@ class CardSongController extends Controller
     public function toggleSongPlayed(Request $request) {
         $game_id = (int) $request->input('game_id');
         $cardsong_obj = new CardSong($game_id);
-        
+
         if (!$cardsong_obj->checkCookie()){
             return redirect('/');
         };
