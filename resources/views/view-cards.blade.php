@@ -43,7 +43,7 @@
             </div>
             <div class="row">
                 <div class="col">
-                    <h1><?php echo "BingoBeater - Game {$cardsong_obj->game_id} - Round {$round}";?></h1>
+                    <h1><?php echo "BB - G{$cardsong_obj->game_id} - R{$round}";?></h1>
                 </div>
             </div>
 

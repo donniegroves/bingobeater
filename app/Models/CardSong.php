@@ -97,21 +97,24 @@ class CardSong extends Model
      * @return array
      */
     public function getCardsFromDB(): array {
-        $cards = [];
-        foreach ($this->card_ids as $card_id) {
-            foreach ($this->rounds as $round_num => $round) {
-                $cards[$card_id][$round_num] = DB::table('card_songs')
-                    ->select("song_id", "col", "row", "artist", "song_title", "played")
-                    ->where('game_id', $this->game_id)
-                    ->where('card_id', $card_id)
-                    ->where('round', $round_num)
-                    ->orderBy('row', 'asc')
-                    ->orderBy('col', 'asc')
-                    ->get()
-                    ->toArray();
-            }
+        $all_in_game = DB::table('card_songs')
+            ->select("song_id", "card_id", "round", "col", "row", "artist", "song_title", "played")
+            ->where('game_id', $this->game_id)
+            ->get()
+            ->toArray();
+
+        foreach ($all_in_game as $row){
+            $final[$row->card_id][$row->round][] = (object) [
+                "song_id" => $row->song_id,
+                "col" => $row->col,
+                "row" => $row->row,
+                "artist" => $row->artist,
+                "song_title" => $row->song_title,
+                "played" => $row->played
+            ];
         }
-        return $this->cards = $cards;
+
+        return $this->cards = $final;
     }
 
     /**
