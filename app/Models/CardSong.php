@@ -100,6 +100,9 @@ class CardSong extends Model
         $all_in_game = DB::table('card_songs')
             ->select("song_id", "card_id", "round", "col", "row", "artist", "song_title", "played")
             ->where('game_id', $this->game_id)
+            ->orderBy('round')
+            ->orderBy('row')
+            ->orderBy('col')
             ->get()
             ->toArray();
 
