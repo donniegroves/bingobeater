@@ -103,6 +103,7 @@ class CardSong extends Model
             ->get()
             ->toArray();
 
+        $final = [];
         foreach ($all_in_game as $row){
             $final[$row->card_id][$row->round][] = (object) [
                 "song_id" => $row->song_id,
