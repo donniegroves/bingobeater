@@ -2,10 +2,11 @@ FROM php:8.1-apache
 ARG ENVIRONMENT
 WORKDIR /var/www
 COPY . /var/www
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN docker-php-ext-install mysqli pdo_mysql && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
-    apt-get update && apt-get install -y unzip && \
+    apt-get update && apt-get install -y unzip supervisor && \
     composer install --no-interaction --no-progress --prefer-dist && \
     sed -i 's|DocumentRoot.*|DocumentRoot /var/www/public|' /etc/apache2/sites-available/000-default.conf && \
     sed -i 's|<Directory.*|<Directory /var/www/public>|' /etc/apache2/apache2.conf && \
@@ -38,3 +39,5 @@ RUN if [ "$ENVIRONMENT" = "development" ]; then \
     fi
 
 EXPOSE 80
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
