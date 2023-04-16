@@ -3,22 +3,14 @@ version: '3.8'
 services:
   bingo_app:
     extra_hosts:
-        - "host.docker.internal:host-gateway"
-    image: bingo_image
-    container_name: bingo_cont
+        - "host.docker.internal:host-gateway" # needed for xdebug
     volumes:
       - .:/var/www
     build:
-      context: .
       dockerfile: ./Dockerfile
       args:
         - ENVIRONMENT
     ports:
-      - "8082:80"
-    networks:
-      - dg_bridge_network
-
-networks:
-  dg_bridge_network:
-    external: true
-    name: dg_database_dg_bridge_network
+       - "80:80"
+    env_file:
+      - .env
