@@ -16,8 +16,7 @@ RUN docker-php-ext-install mysqli pdo_mysql && \
 # Enable Apache mod_rewrite
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs && \
-    npm i && npm run build && \
-    php artisan queue:work
+    npm i && npm run build 
 
 # Update Apache configuration to allow .htaccess overrides
 RUN { \
