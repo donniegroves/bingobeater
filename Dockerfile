@@ -2,7 +2,7 @@ FROM php:8.1-apache
 ARG ENVIRONMENT
 WORKDIR /var/www
 COPY . /var/www
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 RUN docker-php-ext-install mysqli pdo_mysql && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
