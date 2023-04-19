@@ -1,16 +1,24 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  bingo_app:
-    extra_hosts:
-        - "host.docker.internal:host-gateway" # needed for xdebug
-    volumes:
-      - .:/var/www
+  bingo:
     build:
       dockerfile: Dockerfile
       args:
-        - ENVIRONMENT
-    ports:
-       - "80:80"
+        ENVIRONMENT: $ENVIRONMENT # Passes argument into build time environment
+    container_name: bingo
     env_file:
-      - .env
+      - .env # Passes entire .env into the runtime environment
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # needed for xdebug
+    image: bingo
+    networks:
+      - sandbox-network
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+
+networks:
+  sandbox-network:
+    external: true
